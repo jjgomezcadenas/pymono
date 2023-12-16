@@ -8,6 +8,7 @@ import torch.nn.functional as F
 import sys 
 
 from collections import namedtuple
+from pymono.aux_func import weighted_mean_and_sigma
 import logging
 
 logging.basicConfig(stream=sys.stdout,
@@ -177,6 +178,55 @@ def train_cnn(train_loader, val_loader, model, optimizer, device, criterion, epo
         logging.info(f"--- EPOCH {epoch} AVG TRAIN LOSS: {np.mean(train_losses_epoch)}")
         logging.info(f"--- EPOCH {epoch} AVG VAL LOSS: {np.mean(val_losses_epoch)}")
     
-    print(f"Out of loop after epoch ->{epoch}")
+    logging.info(f"Out of loop after epoch ->{epoch}")
     return train_losses, val_losses
+
+def evaluate_cnn(test_loader, model, device, pixel_size = 6):
+    
+    true_x, true_y, true_z = [],[],[]
+    mean_x, mean_y = [],[]
+    sigma_x, sigma_y = [],[]
+    predicted_x, predicted_y, predicted_z = [],[],[]
+    with torch.no_grad():
+
+        model.eval()
+        for i, (images, positions) in enumerate(test_loader):
+
+            images = images.to(device)
+            outputs = model(images).cpu()
+
+            for x in positions[:,0]: true_x.append(x)
+            for y in positions[:,1]: true_y.append(y)
+            for z in positions[:,2]: true_z.append(z)
+
+            for x in outputs[:,0]: predicted_x.append(x)
+            for y in outputs[:,1]: predicted_y.append(y)
+            for z in outputs[:,2]: predicted_z.append(z)
+
+            for img in images.cpu().squeeze().numpy():
+                mu_x, mu_y, sd_x, sd_y = weighted_mean_and_sigma(img)
+                mean_x.append(mu_x); mean_y.append(mu_y)
+                sigma_x.append(sd_x); sigma_y.append(sd_y)
+
+    # Convert to numpy arrays
+    true_x = np.array(true_x); true_y = np.array(true_y); true_z = np.array(true_z)
+    predicted_x = np.array(predicted_x); predicted_y = np.array(predicted_y); predicted_z = np.array(predicted_z)
+    mean_x = np.array(mean_x); mean_y = np.array(mean_y)
+    sigma_x = np.array(sigma_x); sigma_y = np.array(sigma_y)
+
+    # Compute deltas for the NN.
+    delta_x_NN = true_x - predicted_x
+    delta_y_NN = true_y - predicted_y
+    delta_z_NN = true_z - predicted_z
+
+    # Compute deltas for the classical method
+    delta_x_classical = true_x - pixel_size*mean_x
+    delta_y_classical = true_y - pixel_size*mean_y
+
+    tdeltas = namedtuple('tdeltas',
+           'delta_x_NN, delta_y_NN, delta_z_NN, delta_x_classical, delta_y_classical')
+    return tdeltas(delta_x_NN, delta_y_NN, delta_z_NN, delta_x_classical, delta_y_classical)
+
+
+
     
