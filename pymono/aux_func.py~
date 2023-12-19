@@ -1,0 +1,9 @@
+import os
+
+def select_image_files(data_path, file_id):
+    imgs = os.path.join(data_path, "images_" + str(file_id) + ".npy")
+    lbls = os.path.join(data_path, "metadata_" + str(file_id) + ".csv")
+    print(f"image file selected = {img_name}")
+    print(f"metadata file selected = {lbl_name}")
+    return imgs, lbls
+ 

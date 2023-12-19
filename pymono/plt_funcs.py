@@ -39,6 +39,48 @@ def plot_images(imgs, mdata, img_numbers, pixel_size = 6, grid_size=8):
         ftx[i].plot([x_evt],[y_evt],'o',color='red')
 
 
+
+def plot_h3d(h3d, h3e, grid_size=8, figsize=(30, 40)):
+
+    nn = min(h3d.shape[2], grid_size)
+    
+    fig, axs = plt.subplots(4, 2,figsize=figsize)        
+    ftx = axs.ravel()
+
+    xs = h3e[0]
+    xs_mids = (xs[:-1] + xs[1:]) / 2
+    X =  [f"{x:.2f}" for x in xs_mids]
+
+    ys = h3e[1]
+    ys_mids = (ys[:-1] + ys[1:]) / 2
+    Y =  [f"{x:.2f}" for x in ys_mids]
+
+    for ii in range(0,nn): 
+
+        img = h3d[:,:,ii]
+        fimg = np.array([[f"{x:.2f}" for x in row] for row in img])
+        ftx[ii].imshow(img)
+
+        # Show all ticks and label them with the respective list entries
+        ftx[ii].set_xticks(np.arange(len(X)), labels=X)
+        ftx[ii].set_yticks(np.arange(len(Y)), labels=Y)
+
+        # Rotate the tick labels and set their alignment.
+        plt.setp(ftx[ii].get_xticklabels(), rotation=45, ha="right",
+                rotation_mode="anchor")
+
+        # Loop over data dimensions and create text annotations.
+        for i in range(len(X)):
+            for j in range(len(Y)):
+                text = ftx[ii].text(j, i, fimg[i, j],
+                            ha="center", va="center", color="w")
+
+    #ax.set_title("Energy map")
+    fig.tight_layout()
+    plt.show()
+
+
+
 def plot_energies(ene_light6x6, ene_light_all_6x6,  ene_light3x3, ene_dark6x6, num_bins = 50):
 
     mean6x6, std6x6, fwhm6x6    = mean_rms(ene_light6x6)
@@ -78,6 +120,21 @@ def plot_energies(ene_light6x6, ene_light_all_6x6,  ene_light3x3, ene_dark6x6, n
     fig.tight_layout()
     plt.show()
 
+
+def plot_corrected_energy(cene, num_bins = 50):
+
+    mean6x6, std6x6, fwhm6x6    = mean_rms(cene)
+    
+    fig, ax0 = plt.subplots(1, 1, figsize=(6, 4))
+    
+    _, _, _ = ax0.hist(cene, num_bins, label=f"$\sigma$ (FWHM) = {fwhm6x6:.2f}")
+    ax0.set_xlabel('Energy ')
+    ax0.set_ylabel('Events/bin')
+    ax0.set_title('Sum of energies ')
+    ax0.legend()
+
+    fig.tight_layout()
+    plt.show()
 
 def plot_true_predicted(tdeltas, nbins = 50):
     nbins = 50

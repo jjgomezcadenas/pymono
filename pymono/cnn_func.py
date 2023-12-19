@@ -33,7 +33,8 @@ class MonoDataset(Dataset):
             metadata = pd.read_csv(f'{data_path}/metadata_{i}.csv')
 
             for img, meta in zip(images, metadata.values):
-                self.dataset.append((img/img.max(), meta[1:]))
+                #self.dataset.append((img/img.max(), meta[1:]))
+                self.dataset.append((img, meta[1:]))
 
     def __len__(self):
         return len(self.dataset)

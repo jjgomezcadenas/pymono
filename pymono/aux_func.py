@@ -40,6 +40,39 @@ def energy(data_path: str, file_id: str)->np.ndarray:
     return np.array(energies)
 
 
+def corrected_energy(data_path: str, file_id: str, 
+                     energy_map: str, energy_bins: str)->np.ndarray:
+    """
+    Compute the energy of the selected images by adding the contents (number of photons)
+    in each pixel, then correct it using energy map 
+    
+    """
+    def corr_factor(i,energies, positions, h3d, binsx, binsy, binsz):
+        pos = positions[i]
+        ix = min(np.digitize(pos[0], binsx) -1, h3d.shape[0]-1)
+        iy = min(np.digitize(pos[1], binsy) -1, h3d.shape[1]-1)
+        iz = min(np.digitize(pos[2], binsz) -1, h3d.shape[2]-1)
+        
+        cf = h3d[ix, iy, iz]
+        ce = energies[i]/cf
+        return ce 
+
+    imgs, mdata = select_image_and_metadata(data_path, file_id)
+    positions   = [[mdata.iloc[i].initial_x, mdata.iloc[i].initial_y,
+                    mdata.iloc[i].initial_z] for i in range(0,mdata.shape[0])]
+    
+    h3d = np.load(energy_map)
+    binsx = np.load("x_"+energy_bins)
+    binsy = np.load("y_"+energy_bins)
+    binsz = np.load("z_"+energy_bins)
+
+    energies = [imgs[i].sum() for i in range(0,imgs.shape[0])]
+    cene = [corr_factor(i,energies, positions, 
+                        h3d, binsx, binsy, binsz) for i in range(0,len(energies))]
+
+    return np.array(cene)
+
+
 def mean_rms(energies: np.ndarray)->Tuple[float, float, float]:
     """
     Compute the mean, std and std/mean (FWHM) of the energy vector stored in ```energies```
@@ -67,3 +100,49 @@ def weighted_mean_and_sigma(image):
     weighted_sigma_y = np.sqrt(np.sum(image * (y_indices - weighted_mean_y)**2) / total_intensity)
 
     return weighted_mean_x, weighted_mean_y, weighted_sigma_x, weighted_sigma_y
+
+
+def energy_cube(data_path, file_number=0, bins = (10, 10, 10)):
+    """
+    For the data in ```file_number``, compute a numpy histogramdd (in 3D) in which every axis 
+    is the position of the true interaction and the weight is the energy recorded by the SiPMs,
+    that is the sume of the pixels of the image. 
+
+    """
+    imgs, mdata = select_image_and_metadata(data_path, file_number) 
+    positions = np.array([[mdata.iloc[i].initial_x, mdata.iloc[i].initial_y,
+                           mdata.iloc[i].initial_z] for i in range(0,mdata.shape[0])])
+    energies = np.array([np.sum(imgs[i]) for i in range(0, mdata.shape[0])])
+    h3e      = np.histogramdd(positions, bins = bins, density=False, weights=energies)
+    return h3e
+
+
+def energy_h3d(data_path, file_range=(0,99), bins = (10, 10, 10), compute=True, 
+               file_name_h3d="h3d.npy", file_name_h3e="h3e.npy"):
+    """
+    For the data in ```file_range``, compute a numpy histogramdd (in 3D) in which every axis 
+    is the position of the true interaction and the weight is the energy recorded by the SiPMs,
+    that is the sume of the pixels of the image. The histogram is the mean of the individual
+    histograms obtained for each file
+
+    """
+    if compute:
+        h3ds = [energy_cube(data_path, i, bins) for i in range(*file_range)]
+        h3d  = np.mean([h3ds[i][0] for i in range(*file_range)], axis=0)
+        h3e  = h3ds[0][1]
+        emax = h3d.max()
+        for i in range(0,h3d.shape[2]): 
+            #h3d[:,:,i] = h3d[:,:,i]/np.amax(h3d[:,:,i])
+            h3d[:,:,i] = h3d[:,:,i]/emax
+        np.save(file_name_h3d, h3d)
+        np.save("x_"+file_name_h3e, h3e[0])
+        np.save("y_"+file_name_h3e, h3e[1])
+        np.save("z_"+file_name_h3e, h3e[2])
+    else:
+        h3d = np.load(file_name_h3d)
+        h3ex = np.load("x_"+file_name_h3e)
+        h3ey = np.load("y_"+file_name_h3e)
+        h3ez = np.load("z_"+file_name_h3e)
+        h3e=[h3ex, h3ey, h3ez]
+
+    return h3d, h3e
