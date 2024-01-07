@@ -121,6 +121,67 @@ def plot_energies(ene_light6x6, ene_light_all_6x6,  ene_light3x3, ene_dark6x6, n
     plt.show()
 
 
+def plot_energies2(enedict, num_bins = 50):
+
+    ldict = len(enedict)
+    if ldict == 1: 
+        spl = (1,1)
+    elif ldict == 2:
+        spl = (2,1)
+    elif ldict == 3:
+        spl = (3,1)
+    elif ldict == 4:
+        spl = (2,2)
+    else:
+        print("Dictionary too long: A max of four keys allowed")
+        return 0
+    
+    
+    fwhmdict = {k: mean_rms(val , fwhm_only=True) for k, val in enedict.items()}
+    
+    fig, axes = plt.subplots(*spl, figsize=(10, 8))
+    flat_axes = axes.ravel()
+    for i, (key, value) in enumerate(enedict.items()):
+        #print(i,key,value)
+        _, _, _ = flat_axes[i].hist(value, num_bins, label=f"$\sigma$ (FWHM) = {fwhmdict[key]:.2f}")
+        flat_axes[i].set_xlabel('Energy ')
+        flat_axes[i].set_ylabel('Events/bin')
+        flat_axes[i].set_title(f'{key}')
+    fig.tight_layout()
+    plt.show()
+
+    # ax0.legend()
+    # 
+    # ax0, ax1, ax2, ax3 = flat_axes[0], flat_axes[1], flat_axes[2], flat_axes[3]
+    
+    # _, _, _ = ax0.hist(ene_light6x6, num_bins, label=f"$\sigma$ (FWHM) = {fwhm6x6:.2f}")
+    # ax0.set_xlabel('Energy ')
+    # ax0.set_ylabel('Events/bin')
+    # ax0.set_title('Sum of energies light6x6')
+    # ax0.legend()
+
+    # _, _, _ = ax3.hist(ene_light_all_6x6, num_bins,label=f"$\sigma$ (FWHM) = {fwhm6x6a:.2f}")
+    # ax3.set_xlabel('Energy ')
+    # ax3.set_ylabel('Events/bin')
+    # ax3.set_title('Sum of energies light6x6 all reflectant')
+    # ax3.legend()
+
+    # _, _, _ = ax1.hist(ene_light3x3, num_bins,label=f"$\sigma$ (FWHM) = {fwhm3x3:.2f}")
+    # ax1.set_xlabel('Energy ')
+    # ax1.set_ylabel('Events/bin')
+    # ax1.set_title('Sum of energies light3x3')
+    # ax1.legend()
+
+    # _, _, _ = ax2.hist(ene_dark6x6, num_bins,label=f"$\sigma$ (FWHM) = {fwhm6x6d:.2f}")
+    # ax2.set_xlabel('Energy ')
+    # ax2.set_ylabel('Events/bin')
+    # ax2.set_title('Sum of energies dark6x6')
+    # ax2.legend()
+
+    # fig.tight_layout()
+    # plt.show()
+
+
 def plot_corrected_energy(cene, num_bins = 50):
 
     mean6x6, std6x6, fwhm6x6    = mean_rms(cene)

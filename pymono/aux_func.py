@@ -6,42 +6,49 @@ import pandas as pd
 from typing import Tuple
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
-def select_image_files(data_path: str, file_id: str)->Tuple[str,str]:
+def select_image_files(data_path: str, file_id: str, pad=False)->Tuple[str,str]:
     """
     Return the names of an .npy file storing image data and a .csv file storing metadata
     
     """
-    img_name = os.path.join(data_path, "images_" + str(file_id) + ".npy")
-    lbl_name = os.path.join(data_path, "metadata_" + str(file_id) + ".csv")
+    if pad:
+        img_name = os.path.join(data_path, "images_0" + str(file_id) + ".npy")
+    else:
+        img_name = os.path.join(data_path, "images_" + str(file_id) + ".npy")
+
+    if pad:
+        lbl_name = os.path.join(data_path, "metadata_0" + str(file_id) + ".csv")
+    else:
+        lbl_name = os.path.join(data_path, "metadata_" + str(file_id) + ".csv")
     logging.debug(f"image file selected = {img_name}")
     logging.debug(f"metadata file selected = {lbl_name}")
     return img_name, lbl_name
 
 
-def select_image_and_metadata(data_path: str, file_id: str)->Tuple[np.ndarray, pd.DataFrame]:
+def select_image_and_metadata(data_path: str, file_id: str, pad=False)->Tuple[np.ndarray, pd.DataFrame]:
     """
     Returns a numpy vector containing image data and a PD DataFrame with metadata
     
     """
-    img_name, lbl_name = select_image_files(data_path, file_id)
+    img_name, lbl_name = select_image_files(data_path, file_id, pad)
     mdata = pd.read_csv(lbl_name)
     imgs  = np.load(img_name)
     return imgs, mdata
 
 
-def energy(data_path: str, file_id: str)->np.ndarray:
+def energy(data_path: str, file_id: str, pad=False)->np.ndarray:
     """
     Compute the energy of the selected images by adding the contents (number of photons)
     in each pixel
     
     """
-    imgs, mdata = select_image_and_metadata(data_path, file_id)
+    imgs, mdata = select_image_and_metadata(data_path, file_id, pad)
     energies = [imgs[i].sum() for i in range(0,imgs.shape[0])]
     return np.array(energies)
 
 
 def corrected_energy(data_path: str, file_id: str, 
-                     energy_map: str, energy_bins: str)->np.ndarray:
+                     energy_map: str, energy_bins: str, pad=False)->np.ndarray:
     """
     Compute the energy of the selected images by adding the contents (number of photons)
     in each pixel, then correct it using energy map 
@@ -57,7 +64,7 @@ def corrected_energy(data_path: str, file_id: str,
         ce = energies[i]/cf
         return ce 
 
-    imgs, mdata = select_image_and_metadata(data_path, file_id)
+    imgs, mdata = select_image_and_metadata(data_path, file_id, pad)
     positions   = [[mdata.iloc[i].initial_x, mdata.iloc[i].initial_y,
                     mdata.iloc[i].initial_z] for i in range(0,mdata.shape[0])]
     
@@ -73,12 +80,15 @@ def corrected_energy(data_path: str, file_id: str,
     return np.array(cene)
 
 
-def mean_rms(energies: np.ndarray)->Tuple[float, float, float]:
+def mean_rms(energies: np.ndarray, fwhm_only=False)->Tuple[float, float, float]:
     """
     Compute the mean, std and std/mean (FWHM) of the energy vector stored in ```energies```
 
     """
-    return np.mean(energies), np.std(energies), 2.3*np.std(energies)/np.mean(energies)
+    if fwhm_only:
+        return 2.3*np.std(energies)/np.mean(energies)
+    else:
+        return np.mean(energies), np.std(energies), 2.3*np.std(energies)/np.mean(energies)
 
 
 def weighted_mean_and_sigma(image):
@@ -102,14 +112,14 @@ def weighted_mean_and_sigma(image):
     return weighted_mean_x, weighted_mean_y, weighted_sigma_x, weighted_sigma_y
 
 
-def energy_cube(data_path, file_number=0, bins = (10, 10, 10)):
+def energy_cube(data_path, file_number=0, bins = (10, 10, 10), pad=False):
     """
     For the data in ```file_number``, compute a numpy histogramdd (in 3D) in which every axis 
     is the position of the true interaction and the weight is the energy recorded by the SiPMs,
     that is the sume of the pixels of the image. 
 
     """
-    imgs, mdata = select_image_and_metadata(data_path, file_number) 
+    imgs, mdata = select_image_and_metadata(data_path, file_number, pad) 
     positions = np.array([[mdata.iloc[i].initial_x, mdata.iloc[i].initial_y,
                            mdata.iloc[i].initial_z] for i in range(0,mdata.shape[0])])
     energies = np.array([np.sum(imgs[i]) for i in range(0, mdata.shape[0])])
@@ -118,7 +128,7 @@ def energy_cube(data_path, file_number=0, bins = (10, 10, 10)):
 
 
 def energy_h3d(data_path, file_range=(0,99), bins = (10, 10, 10), compute=True, 
-               file_name_h3d="h3d.npy", file_name_h3e="h3e.npy"):
+               file_name_h3d="h3d.npy", file_name_h3e="h3e.npy", pad=False):
     """
     For the data in ```file_range``, compute a numpy histogramdd (in 3D) in which every axis 
     is the position of the true interaction and the weight is the energy recorded by the SiPMs,
@@ -127,7 +137,7 @@ def energy_h3d(data_path, file_range=(0,99), bins = (10, 10, 10), compute=True,
 
     """
     if compute:
-        h3ds = [energy_cube(data_path, i, bins) for i in range(*file_range)]
+        h3ds = [energy_cube(data_path, i, bins, pad) for i in range(*file_range)]
         h3d  = np.mean([h3ds[i][0] for i in range(*file_range)], axis=0)
         h3e  = h3ds[0][1]
         emax = h3d.max()
