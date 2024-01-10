@@ -1,6 +1,42 @@
 import matplotlib.pyplot as plt
 import numpy as np 
 from pymono.aux_func import mean_rms
+from torchvision import transforms
+
+def get_bins(xmin, xmax, nbin):
+    step = (xmax - xmin)/nbin
+    binedges = [xmin + i*step for i in range(0,nbin)]
+    return binedges
+
+
+def histoplot(var, varlbl, vart=" ", num_bins = 50, figsize=(6, 4)):
+    _, std, _    = mean_rms(var)
+    
+    fig, ax0 = plt.subplots(1, 1, figsize=figsize)
+    _, _, _ = ax0.hist(var, num_bins, label=f"$\sigma$ = {std:.2f}")
+    ax0.set_xlabel(varlbl)
+    ax0.set_ylabel('Events/bin')
+    ax0.set_title(vart)
+    ax0.legend()
+
+    fig.tight_layout()
+    plt.show()
+
+
+
+def plot_loss(epochs, train_losses, val_losses,figsize=(10, 4)):
+    
+    fig, axes = plt.subplots(1, 1, figsize=figsize)
+    xvals_train = np.arange(0,epochs,1)
+    xvals_val = np.arange(0,epochs,1)
+    axes.plot(xvals_train,train_losses,label='training')
+    axes.plot(xvals_val,val_losses,label='validation')
+    axes.set_ylabel("Loss")
+    axes.set_xlabel("epochs")
+    axes.legend()
+    fig.tight_layout()
+    plt.show()
+
 
 def plot_true_positions(mdata):
     
@@ -37,6 +73,34 @@ def plot_images(imgs, mdata, img_numbers, pixel_size = 6, grid_size=8):
         
         ftx[i].imshow(imgs[ev,:,:])
         ftx[i].plot([x_evt],[y_evt],'o',color='red')
+
+
+def plot_image(train_loader, figsize=(4,4)):
+    images, positions = next(iter(train_loader)) 
+    print(f"read image batch, size->{images.size()}")
+    img = images[0].squeeze()
+    #print(img)
+    plt.rcParams["figure.figsize"] = figsize
+    plt.imshow(transforms.ToPILImage()(img))
+
+
+def plot_image_ds(dataset, indx):
+    img = dataset[indx][0]
+    plt.rcParams["figure.figsize"] = 4, 4
+    plt.imshow(transforms.ToPILImage()(img))
+
+
+def plot_images_ds(dataset, imgs=(0,8), sx=2, figsize=(14, 4)):
+    
+    lenx = imgs[1] - imgs[0]
+    sx = sx
+    sy = int(np.ceil(lenx/sx))
+        
+    fig, axs = plt.subplots(sx, sy,figsize=figsize)        
+    ftx = axs.ravel()
+    for  i in range(*imgs):        
+        img = dataset[i][0]
+        ftx[i].imshow(transforms.ToPILImage()(img))
 
 
 
@@ -121,8 +185,9 @@ def plot_energies(ene_light6x6, ene_light_all_6x6,  ene_light3x3, ene_dark6x6, n
     plt.show()
 
 
-def plot_energies2(enedict, num_bins = 50):
+def plot_energies2(enedict, xmin, xmax, num_bins = 50, figsize=(5, 4)):
 
+    bins = get_bins(xmin, xmax, num_bins)
     ldict = len(enedict)
     if ldict == 1: 
         spl = (1,1)
@@ -139,11 +204,15 @@ def plot_energies2(enedict, num_bins = 50):
     
     fwhmdict = {k: mean_rms(val , fwhm_only=True) for k, val in enedict.items()}
     
-    fig, axes = plt.subplots(*spl, figsize=(10, 8))
-    flat_axes = axes.ravel()
+    fig, axes = plt.subplots(*spl, figsize=figsize)
+    if ldict > 1:
+        flat_axes = axes.ravel()
+    else:
+        flat_axes=[axes]
     for i, (key, value) in enumerate(enedict.items()):
         #print(i,key,value)
-        _, _, _ = flat_axes[i].hist(value, num_bins, label=f"$\sigma$ (FWHM) = {fwhmdict[key]:.2f}")
+
+        _, _, _ = flat_axes[i].hist(value, bins, label=f"$\sigma$ (FWHM) = {fwhmdict[key]:.2f}")
         flat_axes[i].set_xlabel('Energy ')
         flat_axes[i].set_ylabel('Events/bin')
         flat_axes[i].set_title(f'{key}')

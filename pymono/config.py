@@ -6,6 +6,8 @@ import os
 tutorial_dir = Path("/Users/jjgomezcadenas/Projects/pymono/notebooks/tutorials/data/")
 imagenette_dir = os.path.join(tutorial_dir,"imagenette2-160")
 data_dir = Path("/Users/jjgomezcadenas/data/monolith/")
+CsI_6x6_fullwrap_50k_0MHzDC_PTFE_LUT_NX = os.path.join(data_dir, 
+                                          "CsI_6x6_fullwrap_50k_0MHzDC_PTFE_LUT_NX")
 mono_dark_6x6 = os.path.join(data_dir, "dark_walls_6x6_pde_04_ng_50k")
 mono_light_3x3 =os.path.join(data_dir,"reflecting_walls_3x3_pde_04_ng_50k")
 mono_light_6x6 =os.path.join(data_dir,"reflecting_walls_6x6_pde_04_ng_50k")

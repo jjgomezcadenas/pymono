@@ -2,9 +2,49 @@ import os
 import logging
 import numpy as np
 import pandas as pd
+import glob
 
 from typing import Tuple
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+
+def files_list_npy_csv(data_path):
+    """
+    Return the list of .npy file storing image data and of .csv file storing metadata
+    in the directory data_path
+    
+    """
+    def select_files(ext="*.npy"):
+        npys = os.path.join(data_path, ext)
+        return glob.glob(npys)
+
+    images = [f1.split("/")[-1] for f1 in select_files(ext="*.npy")]
+    metadata = [f1.split("/")[-1] for f1 in select_files(ext="*.csv")]
+    imn = [int(im.split(".")[0].split("_")[1]) for im in images]
+    mdn = [int(im.split(".")[0].split("_")[1]) for im in metadata]
+    assert (np.sort(mdn) == np.sort(imn)).all()
+
+    imx=images[0].split(".")[0].split("_")[0]
+    mdx = metadata[0].split(".")[0].split("_")[0]
+    return imx, mdx, np.sort(imn)
+
+
+def select_image_and_lbl(data_path, file_id):
+    """
+    Returns a numpy vector containing image data and a PD DataFrame with metadata
+    
+    """
+    img_name, lbl_name, indx = files_list_npy_csv(data_path)
+    
+    if file_id < 0 or file_id > len(indx) -1:
+        assert False
+    else:
+        img_fname = f"{img_name}_{indx[file_id]}.npy"
+        lbl_fname = f"{lbl_name}_{indx[file_id]}.csv"
+        print(f"Selected files: img = {img_fname}, metdata = {lbl_fname}")
+        imgs  = np.load(os.path.join(data_path,img_fname))
+        mdata = pd.read_csv(os.path.join(data_path, lbl_fname))
+        return imgs, mdata
+    
 
 def select_image_files(data_path: str, file_id: str, pad=False)->Tuple[str,str]:
     """
@@ -36,15 +76,41 @@ def select_image_and_metadata(data_path: str, file_id: str, pad=False)->Tuple[np
     return imgs, mdata
 
 
+def get_energy(data_path, file_id):
+    """
+    Compute the energy of the selected images by adding the contents (number of photons)
+    in each pixel
+    
+    """
+    imgs, _ = select_image_and_lbl(data_path, file_id)
+    energies = [imgs[i].sum() for i in range(0,imgs.shape[0])]
+    return np.array(energies)
+
+
 def energy(data_path: str, file_id: str, pad=False)->np.ndarray:
     """
     Compute the energy of the selected images by adding the contents (number of photons)
     in each pixel
     
     """
-    imgs, mdata = select_image_and_metadata(data_path, file_id, pad)
+    imgs, _ = select_image_and_metadata(data_path, file_id, pad)
     energies = [imgs[i].sum() for i in range(0,imgs.shape[0])]
     return np.array(energies)
+
+def get_means_stds(dir):
+    means =[]
+    stds =[]
+    img_name, lbl_name, indx = files_list_npy_csv(dir)
+    print(f"files in dir: {len(indx)}")
+    for i in indx:
+        images = np.load(f'{dir}/{img_name}_{i}.npy')
+        if i == 1:
+            print(f"shape -> {images.shape}")
+            print(f"mean img0 ={np.mean(images[0,:,:])}")
+            print(f"std  img0 ={np.std(images[0,:,:])}")
+        means.append(np.mean(images, axis=(1,2)))
+        stds.append(np.std(images, axis=(1,2)))
+    return means, stds
 
 
 def corrected_energy(data_path: str, file_id: str, 
