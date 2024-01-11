@@ -312,3 +312,5 @@ def plotxyz(tdl, nbins=50):
     ax2.set_xlabel("NN (ztrue - zpredicted)",fontsize=14)
     ax2.set_ylabel("Counts/bin",fontsize=14)
     ax2.legend()
+    fig.tight_layout()
+    plt.show()
