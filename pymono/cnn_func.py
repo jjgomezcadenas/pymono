@@ -19,95 +19,103 @@ def test_loggin():
      
 #super().__init__() instead of super(CNN_basic, self).__init__()
 
-class MonoDataset(Dataset):
-    """
-    Loads the data to pytorch 
-    self.dataset ->[d1, d2...] where di ->[img (normalized), vector (x,y,z)]
-    """
+# class MonoDataset(Dataset):
+#     """
+#     Loads the data to pytorch 
+#     self.dataset ->[d1, d2...] where di ->[img (normalized), vector (x,y,z)]
+#     variable xyze intoduced for backward compatibility.
+#     Old csv files had xyz info, new csv files have xyze info. To use older files
+#     or new files (ignoring e), set xyze = False, to use new files (adding e) 
+#     xyze is also False. 
+#     """
 
-    def __init__(self, data_path: str, frst_file: int, lst_file: int, 
-                 norm=False, resize=False, mean=None, std=None, size=None):
+#     def __init__(self, data_path: str, frst_file: int, lst_file: int, 
+#                  norm=False, resize=False, mean=None, std=None, size=None, xyze=False):
         
-        self.dataset = []
-        if norm and resize:
-            transf = v2.Compose([
-                            v2.Resize(size=size, antialias=True),
-                            v2.Normalize(mean=[mean], std=[std])])
+#         self.dataset = []
+#         if norm and resize:
+#             transf = v2.Compose([
+#                             v2.Resize(size=size, antialias=True),
+#                             v2.Normalize(mean=[mean], std=[std])])
                     
-        elif norm:
-            transf = v2.Normalize(mean=[mean], std=[std])
+#         elif norm:
+#             transf = v2.Normalize(mean=[mean], std=[std])
                     
-        elif resize:
-            transf = v2.Resize(size=size, antialias=True)
+#         elif resize:
+#             transf = v2.Resize(size=size, antialias=True)
                    
 
-        img_name, lbl_name, indx = files_list_npy_csv(data_path)
-        print(f"Loading files with indexes: {indx[frst_file:lst_file]}")
+#         img_name, lbl_name, indx = files_list_npy_csv(data_path)
+#         print(f"Loading files with indexes: {indx[frst_file:lst_file]}")
 
-        for i in indx[frst_file:lst_file]:
-            images = np.load(f'{data_path}/{img_name}_{i}.npy')
-            metadata = pd.read_csv(f'{data_path}/{lbl_name}_{i}.csv')
+#         for i in indx[frst_file:lst_file]:
+#             images = np.load(f'{data_path}/{img_name}_{i}.npy')
+#             metadata = pd.read_csv(f'{data_path}/{lbl_name}_{i}.csv')
 
-            for img, meta in zip(images, metadata.values):
-                if norm or resize:
-                    self.dataset.append((transf(img), meta[1:]))
-                else:
-                    self.dataset.append(((img, meta[1:])))
+#             for img, meta in zip(images, metadata.values):
+#                 if xyze: # label contains xyze but we want to compare only with xyz
+#                     ee = meta[1:-1] # energy in the csv in last position
+#                 else:
+#                     ee = meta[1:] # either old format (xyz) or new format (xyze)
+#                 if norm or resize:
+#                     self.dataset.append((transf(img), ee))
+#                 else:
+#                     self.dataset.append(((img, ee)))
 
-    def __len__(self):
-        return len(self.dataset)
+#     def __len__(self):
+#         return len(self.dataset)
 
-    def __getitem__(self, idx):
-        image, position = self.dataset[idx]
-        image = torch.tensor(image, dtype=torch.float).unsqueeze(0) # Add channel dimension
-        position = torch.tensor(position, dtype=torch.float)
+#     def __getitem__(self, idx):
+#         image, position = self.dataset[idx]
+#         image = torch.tensor(image, dtype=torch.float).unsqueeze(0) # Add channel dimension
+#         position = torch.tensor(position, dtype=torch.float)
 
-        return image, position
+#         return image, position
 
 
-class MonoDatasetOld(Dataset):
-    """
-    Loads the data to pytorch 
-    self.dataset ->[d1, d2...] where di ->[img (normalized), vector (x,y,z)]
-    """
+# class MonoDatasetOld(Dataset):
+#     """
+#     Loads the data to pytorch 
+#     self.dataset ->[d1, d2...] where di ->[img (normalized), vector (x,y,z)]
+#     """
 
-    def __init__(self, data_path: str, frst_file: int, lst_file: int):
+#     def __init__(self, data_path: str, frst_file: int, lst_file: int):
         
-        self.dataset = []
-        for i in range(frst_file, lst_file):
-            images = np.load(f'{data_path}/images_{i}.npy')
-            metadata = pd.read_csv(f'{data_path}/metadata_{i}.csv')
+#         self.dataset = []
+#         for i in range(frst_file, lst_file):
+#             images = np.load(f'{data_path}/images_{i}.npy')
+#             metadata = pd.read_csv(f'{data_path}/metadata_{i}.csv')
 
-            for img, meta in zip(images, metadata.values):
-                #self.dataset.append((img/img.max(), meta[1:]))
-                self.dataset.append((img, meta[1:]))
+#             for img, meta in zip(images, metadata.values):
+#                 #self.dataset.append((img/img.max(), meta[1:]))
+#                 self.dataset.append((img, meta[1:]))
 
-    def __len__(self):
-        return len(self.dataset)
+#     def __len__(self):
+#         return len(self.dataset)
 
-    def __getitem__(self, idx):
-        image, position = self.dataset[idx]
-        image = torch.tensor(image, dtype=torch.float).unsqueeze(0) # Add channel dimension
-        position = torch.tensor(position, dtype=torch.float)
+#     def __getitem__(self, idx):
+#         image, position = self.dataset[idx]
+#         image = torch.tensor(image, dtype=torch.float).unsqueeze(0) # Add channel dimension
+#         position = torch.tensor(position, dtype=torch.float)
 
-        return image, position
+#         return image, position
 
 
-def split_data(dataset, train_fraction=0.7, val_fraction=0.2):
-    """
-    Split the data between train, validation and test
+# def split_data(dataset, train_fraction=0.7, val_fraction=0.2):
+#     """
+#     Split the data between train, validation and test
 
-    """
-    train_size = int(train_fraction * len(dataset))  # training
-    val_size = int(val_fraction * len(dataset))    # validation
-    test_size = len(dataset) - train_size - val_size  # test
-    train_indices = range(train_size)
-    val_indices = range(train_size, train_size + val_size)
-    test_indices = range(train_size + val_size, len(dataset))
+#     """
+#     train_size = int(train_fraction * len(dataset))  # training
+#     val_size = int(val_fraction * len(dataset))    # validation
+#     test_size = len(dataset) - train_size - val_size  # test
+#     train_indices = range(train_size)
+#     val_indices = range(train_size, train_size + val_size)
+#     test_indices = range(train_size + val_size, len(dataset))
 
-    trsz = namedtuple('trsz',
-           'train_size, val_size, test_size, train_indices, val_indices, test_indices')
-    return trsz(train_size, val_size, test_size, train_indices, val_indices, test_indices)
+#     trsz = namedtuple('trsz',
+#            'train_size, val_size, test_size, train_indices, val_indices, test_indices')
+#     return trsz(train_size, val_size, test_size, train_indices, val_indices, test_indices)
     
 
 class CNN_basic(nn.Module):
@@ -122,7 +130,7 @@ class CNN_basic(nn.Module):
     Input to the network are the pixels of the pictures, output (x,y,z)
 
     """
-    def __init__(self, chi=128, dropout=False, dropout_fraction=0.2):
+    def __init__(self, chi=128, dropout=False, dropout_fraction=0.2, energy=False):
         super().__init__()
         self.dropout = dropout
         self.conv1 = nn.Conv2d(1, chi, 3, padding=1) 
@@ -132,7 +140,10 @@ class CNN_basic(nn.Module):
         self.conv3 = nn.Conv2d(chi*2, chi*4, 2, padding=1)
         self.bn3   = nn.BatchNorm2d(chi*4)
         self.pool = nn.MaxPool2d(2, 2)
-        self.fc0 = nn.Linear(chi*4, 3)
+        if energy:
+            self.fc0 = nn.Linear(chi*4, 4) # add energy output.
+        else:
+            self.fc0 = nn.Linear(chi*4, 3)
         self.drop1 = nn.Dropout(p=dropout_fraction)
         self.debug = True
 
@@ -159,7 +170,7 @@ class CNN_basic(nn.Module):
         
         if self.dropout: x = self.drop1(x)  # drop
         
-        x = self.fc0(x)    # linear layer 512 => 3
+        x = self.fc0(x)    # linear layer 512 => 3 (4)
         
         if(self.debug): print(x.shape)
 
@@ -181,7 +192,7 @@ class CNN_3x3(nn.Module):
     Input to the network are the pixels of the pictures, output (x,y,z)
 
     """
-    def __init__(self, chi=64, dropout=False, dropout_fraction=0.2):
+    def __init__(self, chi=64, dropout=False, dropout_fraction=0.2, energy=False):
         super().__init__()
         self.dropout = dropout
         self.conv1 = nn.Conv2d(1, chi, 3, padding=1) 
@@ -193,7 +204,10 @@ class CNN_3x3(nn.Module):
         self.conv4 = nn.Conv2d(chi*4, chi*8, 2, padding=1)
         self.bn4   = nn.BatchNorm2d(chi*8)
         self.pool = nn.MaxPool2d(2, 2)
-        self.fc0 = nn.Linear(chi*8, 3)
+        if energy:
+            self.fc0 = nn.Linear(chi*8, 4) # add output for energy
+        else:
+            self.fc0 = nn.Linear(chi*8, 3)
         self.drop1 = nn.Dropout(p=dropout_fraction)
         self.debug = True
 
@@ -493,7 +507,32 @@ class ResNet10(nn.Module):
         self.debug = False
         return x
   
+class FF(nn.Module):
+    """
+    A simple feed forward layer with 4 inputs and one hidden layer
+    
+    """
+    def __init__(self, dropout=False, dropout_fraction=0.2):
+        # call constructor from superclass
+        super().__init__()
 
+        self.dropout = dropout
+        self.drop1 = nn.Dropout(p=dropout_fraction)
+        # define network layers
+        self.fc1 = nn.Linear(4, 4)
+        self.fc2 = nn.Linear(4, 4)
+        #self.fc3 = nn.Linear(4, 2)
+        self.fc4 = nn.Linear(4, 1)
+        
+    def forward(self, x):
+        # define forward pass
+        x = torch.sigmoid(self.fc1(x))
+        x = torch.sigmoid(self.fc2(x))
+        #x = torch.sigmoid(self.fc3(x))
+        if self.dropout: x = self.drop1(x)
+        x = torch.sigmoid(self.fc4(x))
+        return x
+    
 def train_cnn(train_loader, val_loader, model, optimizer, device, criterion, 
               batch_size, epochs=10, iprnt=100):
     """
@@ -564,12 +603,17 @@ def train_cnn(train_loader, val_loader, model, optimizer, device, criterion,
     return train_losses, val_losses
 
 
-def evaluate_cnn(test_loader, model, device, classical=False, pixel_size = 6):
+def evaluate_cnn(test_loader, model, device, classical=False, pixel_size = 6, energy=False):
     
     true_x, true_y, true_z = [],[],[]
+    if energy:
+        true_e = []
+
     mean_x, mean_y = [],[]
     sigma_x, sigma_y = [],[]
     predicted_x, predicted_y, predicted_z = [],[],[]
+    if energy:
+        predicted_e = []
     with torch.no_grad():
 
         model.eval()
@@ -581,10 +625,14 @@ def evaluate_cnn(test_loader, model, device, classical=False, pixel_size = 6):
             for x in positions[:,0]: true_x.append(x)
             for y in positions[:,1]: true_y.append(y)
             for z in positions[:,2]: true_z.append(z)
+            if energy:
+                for e in positions[:,3]: true_e.append(e)
 
             for x in outputs[:,0]: predicted_x.append(x)
             for y in outputs[:,1]: predicted_y.append(y)
             for z in outputs[:,2]: predicted_z.append(z)
+            if energy:
+                for e in outputs[:,3]: predicted_e.append(e)
 
             if classical:
                 for img in images.cpu().squeeze().numpy():
@@ -594,7 +642,14 @@ def evaluate_cnn(test_loader, model, device, classical=False, pixel_size = 6):
 
     # Convert to numpy arrays
     true_x = np.array(true_x); true_y = np.array(true_y); true_z = np.array(true_z)
-    predicted_x = np.array(predicted_x); predicted_y = np.array(predicted_y); predicted_z = np.array(predicted_z)
+    if energy:
+        true_e = np.array(true_e)
+
+    predicted_x = np.array(predicted_x) 
+    predicted_y = np.array(predicted_y); predicted_z = np.array(predicted_z)
+    if energy:
+       predicted_e = np.array(predicted_e)
+
     mean_x = np.array(mean_x); mean_y = np.array(mean_y)
     sigma_x = np.array(sigma_x); sigma_y = np.array(sigma_y)
 
@@ -602,6 +657,9 @@ def evaluate_cnn(test_loader, model, device, classical=False, pixel_size = 6):
     delta_x_NN = true_x - predicted_x
     delta_y_NN = true_y - predicted_y
     delta_z_NN = true_z - predicted_z
+
+    if energy:
+        delta_e_NN = true_e - predicted_e
 
     # Compute deltas for the classical method
     if classical: 
@@ -611,9 +669,14 @@ def evaluate_cnn(test_loader, model, device, classical=False, pixel_size = 6):
         delta_x_classical = 0.0
         delta_y_classical = 0.0
 
-    tdeltas = namedtuple('tdeltas',
-           'delta_x_NN, delta_y_NN, delta_z_NN, delta_x_classical, delta_y_classical')
-    return tdeltas(delta_x_NN, delta_y_NN, delta_z_NN, delta_x_classical, delta_y_classical)
+    if energy:
+        tdeltas = namedtuple('tdeltas',
+            'delta_x_NN, delta_y_NN, delta_z_NN, delta_e_NN, delta_x_classical, delta_y_classical')
+        return tdeltas(delta_x_NN, delta_y_NN, delta_z_NN, delta_e_NN, delta_x_classical, delta_y_classical)
+    else:
+        tdeltas = namedtuple('tdeltas',
+            'delta_x_NN, delta_y_NN, delta_z_NN, delta_x_classical, delta_y_classical')
+        return tdeltas(delta_x_NN, delta_y_NN, delta_z_NN, delta_x_classical, delta_y_classical)
 
 
 

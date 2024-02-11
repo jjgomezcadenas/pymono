@@ -4,14 +4,17 @@ import torch.nn as nn
 import torch.optim as optim
 
 from pymono.config import CsI_6x6_fullwrap_50k_0MHzDC_PTFE_LUT_NX
+from pymono.config import BGO_6x6_fullwrap_4d5k_2MHzDC_PTFE_LUT_NX
+from pymono.config import CsITl_6x6_sidewrap_25k_2MHzDC_PTFE_LUT_NX
 from pymono.mono_dl import MonoDataset,mono_data_loader
-from pymono.cnn_func import single_run,  CNN_3x3,train_cnn, evaluate_cnn
+from pymono.cnn_func import single_run,  CNN_3x3, ResBlock, ResNet10, train_cnn, evaluate_cnn
 
 from tqdm.auto import tqdm
 from enum import Enum
 
 import wandb
 import os
+import sys
 import json
 import hashlib
 
@@ -22,6 +25,14 @@ class Debug(Enum):
     Quiet = 4
     Mute = 5.
 
+
+means_par ={CsI_6x6_fullwrap_50k_0MHzDC_PTFE_LUT_NX:165.90,
+            CsITl_6x6_sidewrap_25k_2MHzDC_PTFE_LUT_NX:31.96,
+            BGO_6x6_fullwrap_4d5k_2MHzDC_PTFE_LUT_NX:18.60}
+stds_par={CsI_6x6_fullwrap_50k_0MHzDC_PTFE_LUT_NX:93.3,
+          CsITl_6x6_sidewrap_25k_2MHzDC_PTFE_LUT_NX:46.79,
+            BGO_6x6_fullwrap_4d5k_2MHzDC_PTFE_LUT_NX:5.0}
+          
 def cnn_run(hyperparameters, project_name, verbose=Debug.Info):
 
     # tell wandb to get started
@@ -42,9 +53,17 @@ def cnn_run(hyperparameters, project_name, verbose=Debug.Info):
                                                             train_fraction=config.train_fraction, 
                                                             val_fraction=config.val_fraction) 
       
-      model = CNN_3x3(dropout=config.dropout, 
+      if config.architecture == "CNN3x3":
+        model =  CNN_3x3(dropout=config.dropout, 
                       dropout_fraction=config.dropout_fraction).to(device)
-      
+      elif config.architecture == "ResNet10":
+        model = ResNet10(ResBlock, debug=False,
+                         dropout=config.dropout, 
+                         dropout_fraction=config.dropout_fraction).to(device)
+      else:
+        print(f"Architecture -> {config.architecture} not known")
+        sys.exit()
+
       if verbose == Debug.Quiet: print(model)
       optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
       criterion = nn.MSELoss() 
@@ -226,23 +245,24 @@ device = (
 print(f"Using {device} device")
 
 config={  "project" :"cnn-mon",
-          "dataset": CsI_6x6_fullwrap_50k_0MHzDC_PTFE_LUT_NX,
+          "dataset": CsITl_6x6_sidewrap_25k_2MHzDC_PTFE_LUT_NX,
           "epochs": 20,
           "dropout": True,
           "dropout_fraction":0.3,
-          "architecture": "CNN3x3",
+          "architecture": "CNN3x3",   # or "architecture": "CNN3x3"
           "optimizer": "Adam",
           "criterion": "MSELos",
           "learning_rate": 0.001,
           "first_file": 0,  # initial file indx
           "last_file": 100,  # lasta file indx
           "norm": True, 
-          "mean": 165.90, 
-          "std": 93.3,
+          "mean": means_par[CsITl_6x6_sidewrap_25k_2MHzDC_PTFE_LUT_NX], #
+          "std": stds_par[CsITl_6x6_sidewrap_25k_2MHzDC_PTFE_LUT_NX],
           "batch_size": 1000,
           "train_fraction" : 0.7, 
           "val_fraction": 0.2,
       }
+
 
 print(f"Configuration ->", config)
 

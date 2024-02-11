@@ -154,7 +154,7 @@ def mean_rms(energies: np.ndarray, fwhm_only=False)->Tuple[float, float, float]:
     if fwhm_only:
         return 2.3*np.std(energies)/np.mean(energies)
     else:
-        return np.mean(energies), np.std(energies), 2.3*np.std(energies)/np.mean(energies)
+        return np.mean(energies), np.std(energies)/np.mean(energies), 2.3*np.std(energies)/np.mean(energies)
 
 
 def weighted_mean_and_sigma(image):

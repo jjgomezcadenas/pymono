@@ -35,10 +35,14 @@ class MonoDataset(Dataset):
     """
     Loads the data to pytorch 
     self.dataset ->[d1, d2...] where di ->[img (normalized), vector (x,y,z)]
+    
+    - Variable xyze intoduced for backward compatibility.
+    Old csv files had xyz info, new csv files have xyze info. To use older files     or new files (ignoring e), set xyze = False, to use new files (adding e) 
+    xyze is also False.
     """
 
     def __init__(self, data_path: str, frst_file: int, lst_file: int, 
-                 norm=False, resize=False, mean=None, std=None, size=None):
+                 norm=False, resize=False, mean=None, std=None, size=None, xyze=False):
 
         self.norm=norm 
         self.resize=resize
@@ -69,7 +73,10 @@ class MonoDataset(Dataset):
             metadata = pd.read_csv(f'{data_path}/{lbl_name}_{i}.csv')
             
             for img, meta in zip(images, metadata.values):
-                self.dataset.append(((img, meta[1:])))
+                if xyze:
+                    self.dataset.append(((img, meta[1:-1])))
+                else:
+                    self.dataset.append(((img, meta[1:])))
 
     def __len__(self):
         return len(self.dataset)

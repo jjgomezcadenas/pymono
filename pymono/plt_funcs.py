@@ -314,3 +314,33 @@ def plotxyz(tdl, nbins=50):
     ax2.legend()
     fig.tight_layout()
     plt.show()
+
+
+def plotxyze(tdl, nbins=50):
+    fig, axes = plt.subplots(1, 4, figsize=(14, 4))
+    flat_axes = axes.ravel()
+    ax0, ax1, ax2, ax3 = flat_axes[0], flat_axes[1], flat_axes[2], flat_axes[3]
+    
+    ax0.hist(tdl.delta_x_NN, bins=nbins, 
+             label=f"x ($\sigma$ = {np.std(tdl.delta_x_NN):.2f})", alpha=0.7)
+    ax0.set_xlabel("NN (xtrue - xpredicted)",fontsize=14)
+    ax0.set_ylabel("Counts/bin",fontsize=14)
+    ax0.legend()
+    ax1.hist(tdl.delta_y_NN, bins=nbins, 
+             label=f"y ($\sigma$ = {np.std(tdl.delta_y_NN):.2f})", alpha=0.7)
+    ax1.set_xlabel("NN (ytrue - ypredicted)",fontsize=14)
+    ax1.set_ylabel("Counts/bin",fontsize=14)
+    ax1.legend()
+    ax2.hist(tdl.delta_z_NN, bins=nbins, 
+             label=f"z ($\sigma$ = {np.std(tdl.delta_z_NN):.2f})", alpha=0.7)
+    ax2.set_xlabel("NN (ztrue - zpredicted)",fontsize=14)
+    ax2.set_ylabel("Counts/bin",fontsize=14)
+    ax2.legend()
+    
+    ax3.hist(tdl.delta_e_NN, bins=nbins, 
+             label=f"e ($\sigma$ = {np.std(tdl.delta_e_NN):.2f})", alpha=0.7)
+    ax3.set_xlabel("NN (etrue - epredicted)",fontsize=14)
+    ax3.set_ylabel("Counts/bin",fontsize=14)
+    ax3.legend()
+    fig.tight_layout()
+    plt.show()
