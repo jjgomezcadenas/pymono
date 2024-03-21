@@ -49,7 +49,7 @@ class MonoDataset(Dataset):
         self.dataset = []
         self.transf = None 
 
-        print(f"Running Monoataset with norm = {self.norm}, resize={self.resize}")
+        print(f"Running Monoataset with norm = {self.norm}, resize={self.resize}, xyze={xyze}")
         
         if norm == True and resize == True:
             print("defining transform: componse Resize and Normalize")
@@ -68,6 +68,7 @@ class MonoDataset(Dataset):
         print(f"Loading files with indexes: {indx[frst_file:lst_file]}")
 
         self.verbose = True
+        test = True 
         for i in indx[frst_file:lst_file]:
             images = np.load(f'{data_path}/{img_name}_{i}.npy')
             metadata = pd.read_csv(f'{data_path}/{lbl_name}_{i}.csv')
@@ -75,6 +76,10 @@ class MonoDataset(Dataset):
             for img, meta in zip(images, metadata.values):
                 if xyze:
                     self.dataset.append(((img, meta[1:-1])))
+                    if test:
+                        print(f"meta[1:-1] ={meta[1:-1]}" )
+                        test = False 
+
                 else:
                     self.dataset.append(((img, meta[1:])))
 
