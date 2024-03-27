@@ -182,7 +182,7 @@ class CNN_basic(nn.Module):
 class CNN_3x3(nn.Module):
     """
     Defines a convolutional network with a basic architecture:
-    convolution (3x3) , reLU batch norm and MaxPool: (16,16,1) => (8,8,64)
+    convolution (3x3) , reLU batch norm and MaxPool: (8,6,1) => (8,8,64)
     convolution (2x2) , reLU batch norm and MaxPool: (8,8,64) => (4,4,128)
     convolution (2x2) , reLU batch norm and MaxPool: (4,4,128) => (2,2,256)
     convolution (1x1) , reLU batch norm and MaxPool: (2,2,256) => (1,1,512)
