@@ -16,8 +16,34 @@ logging.basicConfig(stream=sys.stdout,
 
 def test_loggin():
      logging.debug(f"Hellow World")
-     
 
+class CNN (nn.Module):
+    """
+    Defines a convolutional network with a basic architecture:
+
+    """
+    def __init__(self, CNNT, fc0, dropout=False, dropout_fraction=0.2):
+        super().__init__()  
+
+        layers=[]
+        for cnnt in CNNT:
+            layers.append(cnnt.conv)
+            layers.append(cnnt.relu)
+            layers.append(cnnt.bn)
+            layers.append(cnnt.pool)
+
+        layers.append(nn.Flatten(start_dim=1)) 
+        if dropout:
+            layers.append(nn.Dropout(p=dropout_fraction))
+         
+        layers.append(fc0)
+        #print(*layers)
+         
+        self.model = nn.Sequential(*layers)
+
+    def forward(self, x):
+          return self.model(x)
+    
 class CNN_basic(nn.Module):
     """
     Defines a convolutional network with a basic architecture:

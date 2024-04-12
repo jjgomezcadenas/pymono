@@ -57,6 +57,35 @@ def fit_coord(tdeltas, bins=100):
     return f2gz, f2gx, f2gy
 
 
+def fit_coord(X, Y, Z,  bins=100):
+    def bin_data(data, bins):
+        hdz, binsz = np.histogram(data, bins=bins)
+        xdata = bin_centers(binsz)
+        ydata = hdz
+        return xdata, ydata
+
+    def fitcoord2g(data, bins):
+        xdata, ydata = bin_data(data, bins)
+        pars, err, yfit = fit_dgaussian(xdata, ydata)
+        n1 = pars[0]/(pars[0]+ pars[3])
+        n2 = pars[3]/(pars[0]+ pars[3])
+        we = weighted_error(pars[2], n1, pars[5], n2)
+        print(f"2g fit: mu1 = {pars[1]:.2f}, sigma = {pars[2]:.2f}, n1  ={n1:.2f}")
+        print(f"2g fit: mu2 = {pars[4]:.2f}, sigma = {pars[5]:.2f}, n1  ={n2:.2f}")
+        print(f"weighted error: = {we:.2f}")
+    
+        fit2g = namedtuple('fit2g',
+               'xdata, ydata, yfit, norms, mus, sigmas')
+        return fit2g(xdata, ydata, yfit, 
+                    (pars[0], pars[3]), (pars[1], pars[4]), (pars[2], pars[5]))
+        
+    f2gz = fitcoord2g(Z, bins=bins)
+    f2gx = fitcoord2g(X, bins=bins)
+    f2gy = fitcoord2g(Y, bins=bins)
+    
+    return f2gz, f2gx, f2gy
+
+
 def plotfxyz(f2gx, f2gy, f2gz, figsize=(8, 6)):
     def n1n2(norms):
         n1 = norms[0]/(norms[0]+ norms[1])
