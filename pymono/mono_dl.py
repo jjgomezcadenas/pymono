@@ -49,7 +49,7 @@ class MonoDataset(Dataset):
         self.dataset = []
         self.transf = None 
 
-        print(f"Running Monoataset with norm = {self.norm}, resize={self.resize}, xyze={xyze}")
+        print(f"Running MonoDataset with norm = {self.norm}, resize={self.resize}, xyze={xyze}")
         
         if norm == True and resize == True:
             print("defining transform: componse Resize and Normalize")
@@ -160,6 +160,7 @@ def mono_data_loader(dataset,
                                                         val_dataset, 
                                                         test_dataset, 
                                                         batch_size)
+    
     
     return data_loader, train_loader, val_loader, test_loader
 

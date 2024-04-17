@@ -4,9 +4,26 @@ from collections import namedtuple
 import matplotlib.pyplot as plt
 
 def bin_centers(bins):
+    """
+    Return the bin centers of array bins
+
+    """
     return np.array([(bins[i] + bins[i+1])/2 for i in range(len(bins)-1)])
+
 def weighted_error(sigma1, w1, sigma2, w2):
+    """
+    Return weighted error of sigma_i, w_i, (i=1,2)
+    """
     return sigma1 * w1 + sigma2 * w2
+
+def bin_data(data, bins):
+    """
+    bin array data with bins and return array of centers and array of contents
+    """
+    hdz, binsz = np.histogram(data, bins=bins)
+    xdata = bin_centers(binsz)
+    ydata = hdz
+    return xdata, ydata
 
 
 def fit_dgaussian(xdata, 
@@ -28,7 +45,7 @@ def fit_dgaussian(xdata,
     return pars, err, fit_y 
 
 
-def fit_coord(tdeltas, bins=100):
+def fit_coord2(tdeltas, bins=100):
     def bin_data(data, bins):
         hdz, binsz = np.histogram(data, bins=bins)
         xdata = bin_centers(binsz)
@@ -58,12 +75,6 @@ def fit_coord(tdeltas, bins=100):
 
 
 def fit_coord(X, Y, Z,  bins=100):
-    def bin_data(data, bins):
-        hdz, binsz = np.histogram(data, bins=bins)
-        xdata = bin_centers(binsz)
-        ydata = hdz
-        return xdata, ydata
-
     def fitcoord2g(data, bins):
         xdata, ydata = bin_data(data, bins)
         pars, err, yfit = fit_dgaussian(xdata, ydata)

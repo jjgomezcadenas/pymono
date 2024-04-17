@@ -31,7 +31,7 @@ def cifar_data_loader(data_dir,
             transforms.ToTensor(),
     ])
     transform = transforms.Compose([
-            transforms.Resize((224,224)),
+            #transforms.Resize((224,224)),
             transforms.ToTensor(),
             normalize,
     ])
@@ -86,4 +86,5 @@ def cifar_data_loader(data_dir,
                               sampler=valid_sampler)
 
     return (train_loader, valid_loader)
+
 

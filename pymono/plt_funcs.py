@@ -3,6 +3,22 @@ import numpy as np
 from pymono.aux_func import mean_rms
 from torchvision import transforms
 
+
+def cifar_plot_image_and_label(test_loader_nn):
+    plt.rcParams["figure.figsize"] = 2, 2
+    train_features, train_labels = next(iter(test_loader_nn))
+    print(f"Feature batch shape: {train_features.size()}")
+    print(f"Labels batch shape: {train_labels.size()}")
+    img = train_features[0].squeeze()
+    label = train_labels[0]
+    print(img.shape)
+    plt.imshow(transforms.ToPILImage()(img))
+    plt.show()
+    print(f"Label: {label}")
+    plt.rcParams["figure.figsize"] = 10, 8
+
+    
+
 def get_bins(xmin, xmax, nbin):
     step = (xmax - xmin)/nbin
     binedges = [xmin + i*step for i in range(0,nbin)]
@@ -37,6 +53,16 @@ def plot_loss(epochs, train_losses, val_losses,figsize=(10, 4)):
     fig.tight_layout()
     plt.show()
 
+
+def plot_accuracy(acc,figsize=(10, 4)):
+    
+    fig, axes = plt.subplots(1, 1, figsize=figsize)
+    x = np.arange(0,len(acc),1)
+    axes.scatter(x,acc)
+    axes.set_ylabel("Accuracy")
+    axes.set_xlabel("epochs")
+    fig.tight_layout()
+    plt.show()
 
 def plot_true_positions(mdata):
     

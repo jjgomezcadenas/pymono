@@ -4,6 +4,8 @@ import torch.nn.functional as F
 import numpy as np 
 from collections import namedtuple
 
+
+
 def single_run(train_loader, device, model, optimizer, criterion):
     """
     Run the model for a single event
@@ -422,5 +424,8 @@ def cnn_evaluation(image, CNNT):
         image = doconv(image, cnnt.conv, cnnt.pool, i) 
 
     print(f"shape of out image = {image.shape}")
+    m = nn.Flatten()
+    flat = m(image)
+    print(f"shape of flattened image = {flat.shape}")
 
     

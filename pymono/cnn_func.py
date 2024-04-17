@@ -22,7 +22,7 @@ class CNN (nn.Module):
     Defines a convolutional network with a basic architecture:
 
     """
-    def __init__(self, CNNT, fc0, dropout=False, dropout_fraction=0.2):
+    def __init__(self, CNNT, fc0, dropout=False, dropout_fraction=0.2, flatten=True):
         super().__init__()  
 
         layers=[]
@@ -32,7 +32,8 @@ class CNN (nn.Module):
             layers.append(cnnt.bn)
             layers.append(cnnt.pool)
 
-        layers.append(nn.Flatten(start_dim=1)) 
+        if flatten:
+            layers.append(nn.Flatten(start_dim=1)) 
         if dropout:
             layers.append(nn.Dropout(p=dropout_fraction))
          
