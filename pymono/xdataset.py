@@ -1,5 +1,5 @@
 import numpy as np 
-
+import pandas as pd 
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
@@ -11,6 +11,7 @@ import os
 
 from pymono.cnn_aux import get_image_file_data
 from pymono.cnn_aux import get_file_names_format1
+from pymono.cnn_aux import get_img_file_metadata
 
 class XDataset(Dataset):
     """
@@ -20,7 +21,7 @@ class XDataset(Dataset):
     """
 
     def __init__(self, dir_root: str, frst_file: int, lst_file: int, 
-                 norm=False, mean=None, std=None, random_seed=42):
+                 type=None, norm=False, mean=None, std=None, random_seed=42):
 
         def append_images(img_names, imgt_type):
             print(f" Image type = {imgt_type}")
@@ -49,14 +50,15 @@ class XDataset(Dataset):
         if norm == True:
             self.transf = v2.Normalize(mean=[mean], std=[std])
 
-        img_names, _ = get_file_names_format1(d1c)  # get images of 1c
-        append_images(img_names,0)
+        if type == None or type =="1c":
+            img_names, _ = get_file_names_format1(d1c)  # get images of 1c
+            append_images(img_names,0)
         
-        img_names, _ = get_file_names_format1(d2c)  # get images of 2c
-        append_images(img_names,1)
-
-        img_names, _ = get_file_names_format1(dnc)  # get images of 2c
-        append_images(img_names,1)
+        if type == None or type =="2c":
+            img_names, _ = get_file_names_format1(d2c)  # get images of 2c
+            append_images(img_names,1)
+            img_names, _ = get_file_names_format1(dnc)  # get images of 2c
+            append_images(img_names,1)
 
         self.si = list(range(len(self.dataset)))
         print(f"Before shufle: length si: {len(self.si)}, si->{self.si[0:10]}")
@@ -79,3 +81,82 @@ class XDataset(Dataset):
 
         return image, imgtype
 
+
+class RDataset(Dataset):
+    """
+    Loads the data to pytorch 
+    self.dataset ->[d1, d2...] where di ->[img (normalized), vector (x,y,z)]
+    
+    """
+
+    def __init__(self, dir_root: str, frst_file: int, lst_file: int, type=None,
+                 norm=False, mean=None, std=None, random_seed=42, prnt=1000):
+
+        def append_data(img_names, csv_name):
+            test = True
+            df = pd.read_csv(csv_name[0])
+            if test:
+                print(df.head(10))
+            for i in range(frst_file, lst_file):
+                images, _, _, imfn = get_image_file_data(img_names,i)
+                
+                if i%prnt == 0: 
+                    print(f"number of images in file = {len(images)}")
+
+                metadata = get_img_file_metadata(df, imfn)  # This are the events corresponding to the images
+                if i%prnt == 0:
+                    print(f"number of labels in file = {len(metadata)}")
+            
+                for img, meta in zip(images, metadata.values):
+                    if test:
+                        print(f"meta =>{meta}")
+                        print(f"meta =>{meta[2:5]}")
+                        test = False
+                    
+                    self.dataset.append((img, meta[2:5]))
+                    
+        self.norm=norm 
+        self.dataset = []
+        self.transf = None 
+
+        print(f"Running rDataset with norm = {self.norm}")
+        
+        if norm == True:
+            self.transf = v2.Normalize(mean=[mean], std=[std])
+
+        d1c = os.path.join(dir_root,"df1c")  # directory with images 1c
+        d2c = os.path.join(dir_root,"df2c")  # directory with images 2c
+        #dnc = os.path.join(dir_root,"dfnc")  # directory with images nc
+
+        if type == None or type =="1c":
+            print(f"Loading files in directory d1c with indexes: {frst_file}, {lst_file}")
+            
+            img_names, csv_name = get_file_names_format1(d1c)
+            append_data(img_names, csv_name)
+                    
+        if type == None or type =="2c":
+            print(f"Loading files in directory d2c with indexes: {frst_file}, {lst_file}")
+            
+            img_names, csv_name = get_file_names_format1(d2c)
+            append_data(img_names, csv_name)
+
+        self.si = list(range(len(self.dataset)))
+        print(f"Before shufle: length si: {len(self.si)}, si->{self.si[0:10]}")
+        np.random.seed(random_seed)
+        np.random.shuffle(self.si)
+        print(f"After shufle: length si: {len(self.si)}, si->{self.si[0:10]}")
+         
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        #image, position = self.dataset[self.si[idx]]
+        image, position = self.dataset[idx]
+        image = torch.tensor(image, dtype=torch.float).unsqueeze(0) # Add channel dimension
+        position = torch.tensor(position, dtype=torch.float)
+
+        if self.norm == True:
+            image = self.transf(image)
+
+        return image, position
+    

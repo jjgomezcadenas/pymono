@@ -47,7 +47,7 @@ def write_images(events, ifolder, ofolder,
 
 
 def get_folder_out(folder_h5, voxelization):
-    ns = folder_h5.split("_")[:-1] # remove "h5"
+    ns = folder_h5.split("_")[:-1] # remove "h5" or "NX"
     ns.append("vox")
     ns.append(voxelization) # add "vox_{voxelization}" to the tail of the string
     return '_'.join(ns) 
@@ -55,10 +55,13 @@ def get_folder_out(folder_h5, voxelization):
 def main():
     
     path_to_data =os.environ['MONOLITH_DATA'] # Path to monolith data
-    folder_h5    = "CsI_6x6_fullwrap_50k_0MHzDC_PTFE_LUT_gamma_h5" # input h5 folder
-    h5fpfx       = "MonolithicCsI.CsI" # prefix of files
-    voxelization = "12mm"
-    clx ="df1c"
+    folder_h5     = "CsI_6x6_fullwrap_50k_0MHzDC_PTFE_LUT_gamma_h5" # input h5 folder
+    #folder_h5     = "LYSO_6x6_nowrap_15k_2MHzDC_PTFE_LUT_gamma_NX"
+    #folder_h5      =  "CsI_6x6_fullwrap_50k_0MHzDC_PTFE_LUT_gamma_2_h5"
+    h5fpfx         = "MonolithicCsI.CsI" # prefix of files
+    #h5fpfx        = "MonolithicCsI.LYSO" # prefix of files
+    voxelization  = "12mm"
+    clx ="dfnc"
 
     events_per_file = 10000
     got_positions = False
@@ -72,6 +75,8 @@ def main():
 
     print(f"input folder ={ifolder}, output folder = {ofolder}")
     print(f"input DF ={idf}")
+    print(f"voxelization ={voxelization}")
+    print(f"class ={clx}")
 
     # Create output directory if it doesn't exist
     

@@ -117,8 +117,8 @@ def train_cnn(train_loader, val_loader, model, optimizer, device, criterion,
             optimizer.step()
             
             train_losses_epoch.append(loss.data.item())
-            if((i+1) % (iprnt) == 0):
-                #logging.debug(f"Train Step {i + 1}/{len(train_loader)}, Loss: {loss.data.item()}")
+            
+            if((i+1) % (iprnt * batch_size) == 0):
                 print(f"Train Step {i + 1}/{len(train_loader)}, Loss: {loss.data.item()}")
 
         #print(f"Done with training after epoch ->{epoch}")
@@ -137,8 +137,7 @@ def train_cnn(train_loader, val_loader, model, optimizer, device, criterion,
                 loss = criterion(outputs, positions)
 
                 val_losses_epoch.append(loss.data.item())
-                if((i+1) % (iprnt) == 0):
-                    #logging.debug(f"Validation Step {i + 1}/{len(val_loader)}, Loss: {loss.data.item()}")
+                if((i+1) % (iprnt * batch_size) == 0):
                     print(f"Validation Step {i + 1}/{len(val_loader)}, Loss: {loss.data.item()}")
 
         #print(f"Done with validation after epoch ->{epoch}")
@@ -429,3 +428,54 @@ def cnn_evaluation(image, CNNT):
     print(f"shape of flattened image = {flat.shape}")
 
     
+def cnn_xeval(val_loader, model, device, prnt=1000):
+
+    print(f"Validation step: size of sample {len(val_loader)}")
+    
+    with torch.no_grad():  #gradients do not change
+        model.eval()       # Sets the module in evaluation mode.
+        correct = 0
+        c1c = 0
+        c2c = 0
+        total = 0
+        t1c = 0
+        t2c = 0
+            
+        for i, (images, labels) in enumerate(val_loader):
+
+            images = images.to(device)
+            labels = labels.to(device)
+            outputs = model(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+            labels_0 = torch.where(labels == 0)[0]
+            pred_0 = torch.where(predicted == 0)[0]
+            labels_1 = torch.where(labels == 1)[0]
+            pred_1 = torch.where(predicted == 1)[0]
+            result0 = (labels_0[:, None] == pred_0).any(dim=1).sum()
+            result1 = (labels_1[:, None] == pred_1).any(dim=1).sum()
+            c1c += result0
+            c2c += result1
+            t1c += len(labels_0)
+            t2c += len(labels_1)
+
+            if i%prnt==0:
+                print(f"i = {i}")
+                print(f"labels = {labels}")
+                print(f"predicted = {predicted}")
+                print(f"correct = {(predicted == labels).sum().item()}")
+                                
+                print(f"labels 0 = {labels_0}")
+                print(f"predicted 0 = {pred_0}")
+                print(f"labels 1 = {labels_1}")
+                print(f"predicted 1 = {pred_1}")
+
+                print(f"result0 = {result0}")
+                print(f"fraction of 1c == 1c => {result0/len(labels_0)}")
+                print(f"result1 = {result1}")
+                print(f"fraction of 2c == 2c =Z {result1/len(labels_1)}")
+                
+
+    return total, t1c, t2c, correct/total, c1c/t1c, c2c/t2c       
+        

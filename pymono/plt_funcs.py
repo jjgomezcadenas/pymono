@@ -84,6 +84,19 @@ def plot_true_positions(mdata):
     plt.tight_layout()
     plt.show()
 
+def plot_dataset(dst, pixel_size = 6, grid_size=8):
+        
+    _, ftx = plt.subplots(1, 1,figsize=(4, 4))  
+    imgs = dst[0].squeeze().numpy()
+    mdata= dst[1].numpy()      
+          
+    x_evt = (mdata[1] + pixel_size*grid_size/2)/pixel_size - 0.5
+    y_evt = (mdata[0] + pixel_size*grid_size/2)/pixel_size - 0.5
+        
+    ftx.imshow(imgs)
+    ftx.plot([x_evt],[y_evt],'o',color='red')
+    #ftx.plot([y_evt],[x_evt],'o',color='blue')
+
 
 def plot_images(imgs, mdata, img_numbers, pixel_size = 6, grid_size=8):
     
@@ -244,37 +257,6 @@ def plot_energies2(enedict, xmin, xmax, num_bins = 50, figsize=(5, 4)):
         flat_axes[i].set_title(f'{key}')
     fig.tight_layout()
     plt.show()
-
-    # ax0.legend()
-    # 
-    # ax0, ax1, ax2, ax3 = flat_axes[0], flat_axes[1], flat_axes[2], flat_axes[3]
-    
-    # _, _, _ = ax0.hist(ene_light6x6, num_bins, label=f"$\sigma$ (FWHM) = {fwhm6x6:.2f}")
-    # ax0.set_xlabel('Energy ')
-    # ax0.set_ylabel('Events/bin')
-    # ax0.set_title('Sum of energies light6x6')
-    # ax0.legend()
-
-    # _, _, _ = ax3.hist(ene_light_all_6x6, num_bins,label=f"$\sigma$ (FWHM) = {fwhm6x6a:.2f}")
-    # ax3.set_xlabel('Energy ')
-    # ax3.set_ylabel('Events/bin')
-    # ax3.set_title('Sum of energies light6x6 all reflectant')
-    # ax3.legend()
-
-    # _, _, _ = ax1.hist(ene_light3x3, num_bins,label=f"$\sigma$ (FWHM) = {fwhm3x3:.2f}")
-    # ax1.set_xlabel('Energy ')
-    # ax1.set_ylabel('Events/bin')
-    # ax1.set_title('Sum of energies light3x3')
-    # ax1.legend()
-
-    # _, _, _ = ax2.hist(ene_dark6x6, num_bins,label=f"$\sigma$ (FWHM) = {fwhm6x6d:.2f}")
-    # ax2.set_xlabel('Energy ')
-    # ax2.set_ylabel('Events/bin')
-    # ax2.set_title('Sum of energies dark6x6')
-    # ax2.legend()
-
-    # fig.tight_layout()
-    # plt.show()
 
 
 def plot_corrected_energy(cene, num_bins = 50):
