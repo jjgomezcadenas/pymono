@@ -57,6 +57,8 @@ def plot_loss(epochs, train_losses, val_losses,figsize=(10, 4)):
 def plot_accuracy(acc,figsize=(10, 4)):
     
     fig, axes = plt.subplots(1, 1, figsize=figsize)
+   
+    acc.append(0.0)
     x = np.arange(0,len(acc),1)
     axes.scatter(x,acc)
     axes.set_ylabel("Accuracy")

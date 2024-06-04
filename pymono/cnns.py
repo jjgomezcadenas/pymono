@@ -67,8 +67,7 @@ def build_linear_layers(layers : List[nn.Sequential], df=0.25) -> nn.Sequential:
     return nn.Sequential(*LL)   
 
 
-
-class CNN(nn.Module):
+class xCNN(nn.Module):
     """
     Define a CNN with 
     - A set of convolutional layers (convlyrs)
@@ -125,7 +124,7 @@ class ResBlock(nn.Module):
         return out
     
 
-class ResNet10(nn.Module):
+class xResNet10(nn.Module):
     """
     Implements the Residual Network with 34 layers:
     The architecture is like this:
@@ -229,7 +228,7 @@ class ResNet10(nn.Module):
   
 
 
-class ResNet8(nn.Module):
+class xResNet8(nn.Module):
     """
     Implements the Residual Network with 34 layers:
     The architecture is like this:
@@ -333,7 +332,7 @@ class ResNet8(nn.Module):
   
 
 
-def cnn_evaluation(image : torch.tensor, CL : List[nn.Sequential]):
+def x_cnn_evaluation(image : torch.tensor, CL : List[nn.Sequential]):
     """
     Computes the shape of the output tensor after passing through
     each convolutional layer defined by CL

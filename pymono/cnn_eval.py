@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import numpy as np 
 from collections import namedtuple
 
-
+from pymono.aux_func import weighted_mean_and_sigma
 
 def single_run(train_loader, device, model, optimizer, criterion):
     """
@@ -301,6 +301,55 @@ def evaluate_cnn(test_loader, model, device, classical=False, pixel_size = 6, en
             'delta_x_NN, delta_y_NN, delta_z_NN, delta_x_classical, delta_y_classical')
         return tdeltas(delta_x_NN, delta_y_NN, delta_z_NN, delta_x_classical, delta_y_classical)
     
+def evaluate_2c_cnn(test_loader, model, device):
+    """
+    valuate the CNN returning the difference between true and predicted for the 6 coordinates
+
+    """
+    true_x1, true_y1, true_z1 = [],[],[]
+    true_x2, true_y2, true_z2 = [],[],[]
+    
+
+    predicted_x1, predicted_y1, predicted_z1 = [],[],[]
+    predicted_x2, predicted_y2, predicted_z2 = [],[],[]
+    with torch.no_grad():
+        model.eval()
+        for i, (images, positions) in enumerate(test_loader):
+    
+            images = images.to(device)
+            outputs = model(images).cpu()
+    
+            for x in positions[:,0]: true_x1.append(x)
+            for y in positions[:,1]: true_y1.append(y)
+            for z in positions[:,2]: true_z1.append(z)
+            for x in positions[:,3]: true_x2.append(x)
+            for y in positions[:,4]: true_y2.append(y)
+            for z in positions[:,5]: true_z2.append(z)
+                
+    
+            for x in outputs[:,0]: predicted_x1.append(x)
+            for y in outputs[:,1]: predicted_y1.append(y)
+            for z in outputs[:,2]: predicted_z1.append(z)
+            for x in outputs[:,3]: predicted_x2.append(x)
+            for y in outputs[:,4]: predicted_y2.append(y)
+            for z in outputs[:,5]: predicted_z2.append(z)
+               
+        # Convert to numpy arrays
+        true_x1 = np.array(true_x1); true_y1 = np.array(true_y1); true_z1 = np.array(true_z1)
+        true_x2 = np.array(true_x2); true_y2 = np.array(true_y2); true_z2 = np.array(true_z2)
+        
+        predicted_x1 = np.array(predicted_x1) 
+        predicted_y1 = np.array(predicted_y1); predicted_z1 = np.array(predicted_z1)
+        predicted_x2 = np.array(predicted_x2) 
+        predicted_y2 = np.array(predicted_y2); predicted_z2 = np.array(predicted_z2)
+        
+    
+    tdeltas12 = namedtuple('tdeltas12',
+            'true_x1, true_y1, true_z1, true_x2, true_y2, true_z2, pred_x1, pred_y1, pred_z1, pred_x2, pred_y2, pred_z2')
+    return tdeltas12(true_x1, true_y1, true_z1, true_x2, true_y2, true_z2, 
+                     predicted_x1, predicted_y1, predicted_z1, predicted_x2, predicted_y2, predicted_z2)
+    
+
 
 def evaluate_cnnx(test_loader, model, device):
     """

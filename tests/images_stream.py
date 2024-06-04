@@ -60,8 +60,14 @@ def main():
     #folder_h5      =  "CsI_6x6_fullwrap_50k_0MHzDC_PTFE_LUT_gamma_2_h5"
     h5fpfx         = "MonolithicCsI.CsI" # prefix of files
     #h5fpfx        = "MonolithicCsI.LYSO" # prefix of files
-    voxelization  = "12mm"
-    clx ="dfnc"
+    
+
+    vxy = 6 # in mm
+    vz = 12 # in mm
+
+    voxelization  = f"xy_{vxy}_z_{vz}"
+    clx ="df2c"
+
 
     events_per_file = 10000
     got_positions = False

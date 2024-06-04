@@ -45,7 +45,7 @@ def fit_dgaussian(xdata,
     return pars, err, fit_y 
 
 
-def fit_coord2(tdeltas, bins=100):
+def fit_tdeltas(tdeltas, bins=100):
     def bin_data(data, bins):
         hdz, binsz = np.histogram(data, bins=bins)
         xdata = bin_centers(binsz)
@@ -97,7 +97,7 @@ def fit_coord(X, Y, Z,  bins=100):
     return f2gz, f2gx, f2gy
 
 
-def plotfxyz(f2gx, f2gy, f2gz, figsize=(8, 6)):
+def plotfxyz(f2gx, f2gy, f2gz, figsize=(8, 6), savefig=False, figname="fitxyz.png"):
     def n1n2(norms):
         n1 = norms[0]/(norms[0]+ norms[1])
         n2 = norms[1]/(norms[0]+ norms[1])
@@ -132,4 +132,7 @@ def plotfxyz(f2gx, f2gy, f2gz, figsize=(8, 6)):
     ax2.set_ylabel("Counts/bin",fontsize=14)
 
     fig.tight_layout()
+    if savefig:
+        plt.savefig(figname)
+    
     plt.show()
