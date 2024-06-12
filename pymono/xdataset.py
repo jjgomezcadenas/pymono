@@ -271,3 +271,79 @@ class R2Dataset(Dataset):
 
         return image, position
     
+    
+class PDataset(Dataset):
+    """
+    Loads the photoelectric data to pytorch 
+    self.dataset ->[d1, d2...] where di ->[img (normalized), vector (x,y,z)]
+    
+    """
+
+    def __init__(self, dirpe: str, frst_file: int, lst_file: int, 
+                 norm=False, mean=None, std=None, random_seed=42, prnt=1000):
+
+        def append_data(img_names, csv_name):
+            test = True
+            df = pd.read_csv(csv_name[0])
+            if test:
+                print(df.head(10))
+            for i in range(frst_file, lst_file):
+                images,_, img_name, imfn = get_image_file_data(img_names,i)
+                
+                if i%prnt == 0: 
+                    print(f"image name = {img_name}")
+                    print(f"image number = {imfn}")
+                    print(f"image  = {images[imfn]}")
+                    print(f"number of images in file = {len(images)}")
+
+                metadata = get_img_file_metadata(df, imfn)  # This are the events corresponding to the images
+                if i%prnt == 0:
+                    print(f"number of labels in file = {len(metadata)}")
+            
+                for img, meta in zip(images, metadata.values):
+                    if test:
+                        print(f"meta =>{meta}")
+                        print(f"meta =>{meta[3:6]}")
+                        test = False
+                    
+                    self.dataset.append((img, np.array(meta[3:6])))
+                    
+        self.norm=norm 
+        self.dataset = []
+        self.transf = None 
+
+        print(f"Running pDataset with norm = {self.norm}")
+        
+        if norm == True:
+            self.transf = v2.Normalize(mean=[mean], std=[std])
+
+            
+        img_names, csv_name = get_file_names_format1(dirpe)
+        append_data(img_names, csv_name)
+                    
+        self.si = list(range(len(self.dataset)))
+        print(f"Before shufle: length si: {len(self.si)}, si->{self.si[0:10]}")
+        np.random.seed(random_seed)
+        np.random.shuffle(self.si)
+        print(f"After shufle: length si: {len(self.si)}, si->{self.si[0:10]}")
+         
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        #image, position = self.dataset[self.si[idx]]
+        image, position = self.dataset[idx]
+        pos2 = np.zeros(3)
+        for i in range(0,3):
+            pos2[i] = position[i]
+
+              
+        image = torch.from_numpy(image).unsqueeze(0)
+        #image = torch.tensor(image, dtype=torch.float).unsqueeze(0) # Add channel dimension
+        #position = torch.from_numpy(np.array(position))
+        position = torch.tensor(pos2, dtype=torch.float)
+
+        if self.norm == True:
+            image = self.transf(image)
+
+        return image, position

@@ -15,7 +15,7 @@ def main():
     # cutoffs: 10 keV for partices and maximum length of particles in crystal
     eth = 0.001 # in keV
     lmax = 49 # in mm   notice crystal is 50 mm
-    vxy = 7 # in mm
+    vxy = 12 # in mm
     vz = 12 # in mm
 
     nc = False 

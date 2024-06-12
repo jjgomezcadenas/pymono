@@ -62,7 +62,7 @@ def main():
     #h5fpfx        = "MonolithicCsI.LYSO" # prefix of files
     
 
-    vxy = 6 # in mm
+    vxy = 12 # in mm
     vz = 12 # in mm
 
     voxelization  = f"xy_{vxy}_z_{vz}"
