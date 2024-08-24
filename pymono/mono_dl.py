@@ -36,9 +36,10 @@ class MonoDataset(Dataset):
     Loads the data to pytorch 
     self.dataset ->[d1, d2...] where di ->[img (normalized), vector (x,y,z)]
     
-    - Variable xyze intoduced for backward compatibility.
-    Old csv files had xyz info, new csv files have xyze info. To use older files     or new files (ignoring e), set xyze = False, to use new files (adding e) 
-    xyze is also False.
+    - Variable xyze intoduced to allow two types of format:
+    1. csv files with format xyz (set xyze == False)
+    2. csv files with format xyze (set xyze == True)
+   
     """
 
     def __init__(self, data_path: str, frst_file: int, lst_file: int, 

@@ -25,11 +25,11 @@ def get_bins(xmin, xmax, nbin):
     return binedges
 
 
-def histoplot(var, varlbl, vart=" ", num_bins = 50, figsize=(6, 4)):
+def histoplot(var, varlbl, vart=" ", num_bins = 50, range=None, figsize=(6, 4)):
     _, std, _    = mean_rms(var)
     
     fig, ax0 = plt.subplots(1, 1, figsize=figsize)
-    _, _, _ = ax0.hist(var, num_bins, label=f"$\sigma$ = {std:.2f}")
+    _, _, _ = ax0.hist(var, num_bins, range, label=f"$\sigma$ = {std:.2f}")
     ax0.set_xlabel(varlbl)
     ax0.set_ylabel('Events/bin')
     ax0.set_title(vart)
