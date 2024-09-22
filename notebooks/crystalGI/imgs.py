@@ -18,15 +18,18 @@ def select_image_from_df(df,evtsel, n = 8):
 def get_gamma_position(dfg, evtsel, x_spatial, y_spatial):
     df = dfg[dfg.event==evtsel]
     print(f"xg1 = {df.x1.values[0]}, yg1 ={df.y1.values[0]}")
-    print(f"xg2 = {df.x1.values[0]}, yg2 ={df.y1.values[0]}")
+    
     
     xt1, yt1 = transform_coordinates(df.x1.values[0], df.y1.values[0], 
                                      x_spatial, y_spatial)
 
+    print(f"xt1 = {xt1}, yt1 ={yt1}")
+
+    print(f"xg2 = {df.x1.values[0]}, yg2 ={df.y1.values[0]}")
+
     xt2, yt2 = transform_coordinates(df.x2.values[0], df.y2.values[0], 
                                      x_spatial, y_spatial)
-    #print(xt1, yt1)
-    #print(xt2, yt2)
+    print(f"xt2 = {xt2}, yt1 ={yt2}")
 
     return xt1, yt1,xt2, yt2
 
@@ -37,17 +40,38 @@ def transform_coordinates(x, y, x_spatial, y_spatial, x_min2=0,   x_max2=8,  y_m
     x_max1=x_spatial[-1] 
     y_min1=y_spatial[0]
     y_max1 = y_spatial[-1]
-    
+
+    if x < x_min1:
+        x = x_min1
+
+    if x > x_max1:
+        x = x_max1
+
+    if y < y_min1:
+        y = y_min1
+
+    if y > y_max1:
+        y = y_max1
+ 
     # Apply the transformation for x and y
     x_new = ((x - x_min1) / (x_max1 - x_min1)) * (x_max2 - x_min2) + x_min2
     y_new = ((y - y_min1) / (y_max1 - y_min1)) * (y_max2 - y_min2) + y_min2
-    
+
+    print(f"x = {x}, y ={y}")
+  
+
     return x_new, y_new
 
 
 def plot_image(dfq, dfg,  evtsel, x_spatial, y_spatial, figsize=(6, 6)):
     
-    charge_matrix = select_image_from_df(dfq,evtsel)
+    image = select_image_from_df(dfq,evtsel)
+    plot_image2(image, dfg,  evtsel, x_spatial, y_spatial, figsize=figsize)
+    
+
+def plot_image2(image, dfg,  evtsel, x_spatial, y_spatial, figsize=(6, 6)):
+    
+    charge_matrix = image
     xt1, yt1,xt2, yt2 =get_gamma_position(dfg, evtsel, x_spatial, y_spatial)
     
     # Create the plot
