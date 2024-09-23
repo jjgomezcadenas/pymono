@@ -25,7 +25,7 @@ def get_gamma_position(dfg, evtsel, x_spatial, y_spatial):
 
     print(f"xt1 = {xt1}, yt1 ={yt1}")
 
-    print(f"xg2 = {df.x1.values[0]}, yg2 ={df.y1.values[0]}")
+    print(f"xg2 = {df.x2.values[0]}, yg2 ={df.y2.values[0]}")
 
     xt2, yt2 = transform_coordinates(df.x2.values[0], df.y2.values[0], 
                                      x_spatial, y_spatial)

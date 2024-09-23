@@ -45,7 +45,7 @@ def fit_dgaussian(xdata,
     return pars, err, fit_y 
 
 
-def fit_tdeltas(tdeltas, bins=100):
+def fit_tdeltas(tdeltas, bins=100, twoc=False):
     def bin_data(data, bins):
         hdz, binsz = np.histogram(data, bins=bins)
         xdata = bin_centers(binsz)
@@ -66,13 +66,21 @@ def fit_tdeltas(tdeltas, bins=100):
                'xdata, ydata, yfit, norms, mus, sigmas')
         return fit2g(xdata, ydata, yfit, 
                     (pars[0], pars[3]), (pars[1], pars[4]), (pars[2], pars[5]))
-        
+    
     f2gz = fitcoord2g(tdeltas.delta_z_NN, bins=bins)
     f2gx = fitcoord2g(tdeltas.delta_x_NN, bins=bins)
     f2gy = fitcoord2g(tdeltas.delta_y_NN, bins=bins)
-    
-    return f2gz, f2gx, f2gy
 
+    if twoc:
+        f2gz2 = fitcoord2g(tdeltas.delta_z_NN2, bins=bins)
+        f2gx2 = fitcoord2g(tdeltas.delta_x_NN2, bins=bins)
+        f2gy2 = fitcoord2g(tdeltas.delta_y_NN2, bins=bins)
+
+    if twoc:
+        return f2gz, f2gx, f2gy, f2gz2, f2gx2, f2gy2
+    else:
+        return f2gz, f2gx, f2gy
+    
 
 def fit_coord(X, Y, Z,  bins=100):
     def fitcoord2g(data, bins):

@@ -145,8 +145,8 @@ def process_files(csvdir, imgdir):
 
 def main():
     start_time = time.time() 
-    g4dir = "/Users/jjgomezcadenas/Data/G4Prods/crystalGI/G4BGO"
-    imgdir = "/Users/jjgomezcadenas/Data/G4Prods/crystalGI/BGO"
+    g4dir = "/Users/jjgomezcadenas/Data/G4Prods/crystalGI/G4BGOH1"
+    imgdir = "/Users/jjgomezcadenas/Data/G4Prods/crystalGI/BGOH1"
   
     print(f"Input directory (csv files produced by G4) = {g4dir}")
     print(f"Output directory (img and metadata files) = {imgdir}")
