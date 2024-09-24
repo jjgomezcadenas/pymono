@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 from cnn_aux import get_gamma_position_in_pixels
 
+from torchvision import transforms
+
 
 def histoplot(var, xlabel, ylabel, bins=100, figsize=(4,4), title=""):
     """
@@ -156,3 +158,65 @@ def plotxyz_twoc(tdl, nbins=50):
     
     fig.tight_layout()
     plt.show()
+
+
+def plotxyz(tdl, nbins=50):
+    fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+    flat_axes = axes.ravel()
+    ax0, ax1, ax2 = flat_axes[0], flat_axes[1], flat_axes[2]
+    
+    ax0.hist(tdl.delta_x_NN, bins=nbins, 
+             label=f"x ($\sigma$ = {np.std(tdl.delta_x_NN):.2f})", alpha=0.7)
+    ax0.set_xlabel("NN (xtrue - xpredicted)",fontsize=14)
+    ax0.set_ylabel("Counts/bin",fontsize=14)
+    ax0.legend()
+    ax1.hist(tdl.delta_y_NN, bins=nbins, 
+             label=f"y ($\sigma$ = {np.std(tdl.delta_y_NN):.2f})", alpha=0.7)
+    ax1.set_xlabel("NN (ytrue - ypredicted)",fontsize=14)
+    ax1.set_ylabel("Counts/bin",fontsize=14)
+    ax1.legend()
+    ax2.hist(tdl.delta_z_NN, bins=nbins, 
+             label=f"z ($\sigma$ = {np.std(tdl.delta_z_NN):.2f})", alpha=0.7)
+    ax2.set_xlabel("NN (ztrue - zpredicted)",fontsize=14)
+    ax2.set_ylabel("Counts/bin",fontsize=14)
+    ax2.legend()
+    fig.tight_layout()
+    plt.show()
+
+
+
+def plot_image_ds(dataset, indx):
+    img = dataset[indx][0]
+    plt.rcParams["figure.figsize"] = 4, 4
+    plt.imshow(transforms.ToPILImage()(img))
+
+
+def plot_images_ds(dataset, imgs=(0,8), sx=2, figsize=(14, 4)):
+    
+    lenx = imgs[1] - imgs[0]
+    sx = sx
+    sy = int(np.ceil(lenx/sx))
+        
+    fig, axs = plt.subplots(sx, sy,figsize=figsize)        
+    ftx = axs.ravel()
+    for  i in range(*imgs):        
+        img = dataset[i][0]
+        ftx[i].imshow(transforms.ToPILImage()(img))
+
+
+def plot_loss(epochs, train_losses, val_losses,figsize=(10, 4)):
+    
+    fig, axes = plt.subplots(1, 1, figsize=figsize)
+    xvals_train = np.arange(0,epochs,1)
+    xvals_val = np.arange(0,epochs,1)
+    axes.plot(xvals_train,train_losses,label='training')
+    axes.plot(xvals_val,val_losses,label='validation')
+    axes.set_ylabel("Loss")
+    axes.set_xlabel("epochs")
+    axes.legend()
+    fig.tight_layout()
+    plt.show()
+
+
+
+
